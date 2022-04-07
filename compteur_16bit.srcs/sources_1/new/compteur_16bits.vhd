@@ -45,24 +45,28 @@ end compteur_16bits;
 architecture Behavioral of compteur_16bits is
 signal Aux: std_logic_vector (15 downto 0) := X"0000"; -- Signal auxiliaire pour Dout (lecture et écriture)
 begin
+
+    -- Chaque lignes dans un entity est considerée comme un process (concurent)
+
     process (CK,RST,LOAD,EN,SENS) -- Liste de sensibilité (activation du process lors du changement)
     begin
         -- wait until rising_edge(CK); <- synchronisation mais incompatible avec la liste de sensibilité
         if RST='0' then
-            Aux <= X"0000"; -- Remise à 0 du vecteur
-            Dout <= (others => '0');
+            Aux <= X"0000"; -- Remise à 0 du vecteur ou (others => '0
         elsif rising_edge(CK) then -- CK'Edge and CK='1'
             if LOAD='1' then
                 Aux <= Din; -- Chargement de Din dans Dout et Aux
-                Dout <= Din;
             elsif EN='0' then
                 if SENS='0' then
                     Aux<=Aux-1; -- Décrementation
                 else
                     Aux<=Aux+1; -- Incrémentation
                 end if;
-                Dout <= Aux; -- Sortie de la nouvelle valeur
             end if;
         end if;
     end process;
+    
+    -- Attribution concurente
+    -- En dehors du précedent process pour ne pas perdre une période d'horloge dans le changement de valeur
+    Dout <= Aux; -- Sortie de la nouvelle valeur
 end Behavioral;
